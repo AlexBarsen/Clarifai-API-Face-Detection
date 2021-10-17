@@ -6,6 +6,7 @@ import Rank from "./components/Rank/Rank";
 import FaceRecognition from "./components/FaceRecognition/FaceRecognition";
 import Particles from "react-particles-js";
 import SignIn from "./components/SignIn/SignIn";
+import Register from "./components/Register/Register";
 import Clarifai from "clarifai";
 
 import "./App.css";
@@ -30,8 +31,15 @@ const App = () => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [box, setBox] = useState<Object | null>(null);
   const [route, setRoute] = useState<string>("signin");
+  const [isSignedIn, setIsSignedIn] = useState<boolean>(false);
 
   const onRouteChange = (route: string) => {
+    if (route === "signout") {
+      setIsSignedIn(false);
+    } else if (route === "home") {
+      setIsSignedIn(true);
+    }
+
     setRoute(route);
   };
 
@@ -84,10 +92,8 @@ const App = () => {
           },
         }}
       />
-      <Navigation onRouteChange={onRouteChange} />
-      {route === "signin" ? (
-        <SignIn onRouteChange={onRouteChange} />
-      ) : (
+      <Navigation isSignedIn={isSignedIn} onRouteChange={onRouteChange} />
+      {route === "home" ? (
         <>
           <Logo />
           <Rank />
@@ -97,6 +103,10 @@ const App = () => {
           />
           <FaceRecognition box={box} imageUrl={imageUrl} />{" "}
         </>
+      ) : route === "signin" ? (
+        <SignIn onRouteChange={onRouteChange} />
+      ) : (
+        <Register onRouteChange={onRouteChange} />
       )}
     </div>
   );
