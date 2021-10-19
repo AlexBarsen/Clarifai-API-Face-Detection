@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Navigation from "./components/Navigation/Navigation";
 import Logo from "./components/Logo/Logo";
 import ImageLinkForm from "./components/ImageLinkForm/ImageLinkForm";
@@ -15,32 +15,47 @@ const app = new Clarifai.App({
   apiKey: "6f6968867f3c4783ac2dd9f11db5bf79",
 });
 
-// interface State {
-//   input: string;
-//   imageUrl: string;
-// }
+interface State {
+  input: string;
+  imageUrl: string;
+  box: Object;
+  route: string;
+  isSignedIn: boolean;
+  user: User;
+}
 
-// interface Data {
-//   outputs: [];
-//   rawData: {};
-//   status: {};
-// }
+interface User {
+  id: number | null;
+  name: string;
+  email: string;
+  entries: number;
+  joined: Date | null;
+}
 
 const App = () => {
-  const [input, setInput] = useState<string | null>(null);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [box, setBox] = useState<Object | null>(null);
-  const [route, setRoute] = useState<string>("signin");
-  const [isSignedIn, setIsSignedIn] = useState<boolean>(false);
+  const [state, setState] = useState<State>({
+    input: "",
+    imageUrl: "",
+    box: {},
+    route: "signin",
+    isSignedIn: false,
+    user: {
+      id: null,
+      name: "",
+      email: "",
+      entries: 0,
+      joined: null,
+    },
+  });
 
   const onRouteChange = (route: string) => {
     if (route === "signout") {
-      setIsSignedIn(false);
+      setState({ ...state, isSignedIn: false });
     } else if (route === "home") {
-      setIsSignedIn(true);
+      setState({ ...state, isSignedIn: true });
     }
 
-    setRoute(route);
+    setState((prevState) => ({ ...prevState, route: route }));
   };
 
   const calculateFaceLocation = (data: any) => {
@@ -58,24 +73,50 @@ const App = () => {
   };
 
   const displayFaceBox = (box: Object): void => {
-    console.log(box);
-    setBox(box);
+    setState({ ...state, box: box });
   };
 
   const onInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setInput(event.target.value);
+    setState({ ...state, input: event.target.value });
   };
 
-  const onButtonSubmit = () => {
-    setImageUrl(input);
+  const onPictureSubmit = () => {
+    const { input } = state;
+    setState({ ...state, imageUrl: input });
     app.models
       .predict(Clarifai.FACE_DETECT_MODEL, input)
-      .then((response: Object) =>
-        displayFaceBox(calculateFaceLocation(response))
-      )
+      .then((response: Object) => {
+        if (response) {
+          fetch("http://localhost:3000/image", {
+            method: "post",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              id: state.user.id,
+            }),
+          });
+        }
+        displayFaceBox(calculateFaceLocation(response));
+      })
       .catch((err: Error) => console.log(err));
   };
 
+  const loadUser = (userData: User) => {
+    const { id, name, email, entries, joined } = userData;
+
+    setState((prevState) => ({
+      ...prevState,
+      user: {
+        id: userData.id,
+        name: userData.name,
+        email: userData.email,
+        entries: userData.entries,
+        joined: userData.joined,
+      },
+    }));
+  };
+
+  const { isSignedIn, route, box, imageUrl, user } = state;
+  console.log(state);
   return (
     <div className="App">
       <Particles
@@ -96,17 +137,17 @@ const App = () => {
       {route === "home" ? (
         <>
           <Logo />
-          <Rank />
+          <Rank name={user.name} entries={user.entries} />
           <ImageLinkForm
             onInputChange={onInputChange}
-            onButtonSubmit={onButtonSubmit}
+            onPictureSubmit={onPictureSubmit}
           />
           <FaceRecognition box={box} imageUrl={imageUrl} />{" "}
         </>
       ) : route === "signin" ? (
-        <SignIn onRouteChange={onRouteChange} />
+        <SignIn loadUser={loadUser} onRouteChange={onRouteChange} />
       ) : (
-        <Register onRouteChange={onRouteChange} />
+        <Register loadUser={loadUser} onRouteChange={onRouteChange} />
       )}
     </div>
   );

@@ -1,10 +1,55 @@
-import React from "react";
+import React, { useState } from "react";
 
 interface Props {
   onRouteChange: (route: string) => void;
+  loadUser: (user: User) => void;
 }
 
-const Register: React.FC<Props> = ({ onRouteChange }) => {
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  entries: number;
+  joined: Date;
+}
+
+interface InputValues {
+  name: string;
+  email: string;
+  password: string;
+}
+
+const Register: React.FC<Props> = ({ onRouteChange, loadUser }) => {
+  const [inputValues, setinputValues] = useState<InputValues>({
+    name: "",
+    email: "",
+    password: "",
+  });
+
+  const onInputChange = (event: any) => {
+    const { name, value } = event.target;
+
+    setinputValues({ ...inputValues, [name]: value });
+  };
+
+  const onSubmit = (event: any) => {
+    event.preventDefault();
+
+    fetch("http://localhost:3000/register", {
+      method: "post",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(inputValues),
+    })
+      .then((response) => response.json())
+      .then((user) => {
+        if (user) {
+          loadUser(user);
+          onRouteChange("home");
+        } else {
+        }
+      });
+  };
+
   return (
     <article className="br3 ba b--black-10 mv4 w-100 w-50-m w-25-l mw6 shadow-5 center">
       <main className="pa4 black-80">
@@ -20,6 +65,7 @@ const Register: React.FC<Props> = ({ onRouteChange }) => {
                 type="text"
                 name="name"
                 id="name"
+                onChange={onInputChange}
               />
             </div>
             <div className="mt3">
@@ -29,8 +75,9 @@ const Register: React.FC<Props> = ({ onRouteChange }) => {
               <input
                 className="pa2 input-reset ba bg-transparent hover-bg-black hover-white w-100"
                 type="email"
-                name="email-address"
-                id="email-address"
+                name="email"
+                id="email"
+                onChange={onInputChange}
               />
             </div>
             <div className="mv3">
@@ -42,6 +89,7 @@ const Register: React.FC<Props> = ({ onRouteChange }) => {
                 type="password"
                 name="password"
                 id="password"
+                onChange={onInputChange}
               />
             </div>
           </fieldset>
@@ -50,7 +98,7 @@ const Register: React.FC<Props> = ({ onRouteChange }) => {
               className="b ph3 pv2 input-reset ba b--black bg-transparent grow pointer f6 dib"
               type="submit"
               value="Register"
-              onClick={() => onRouteChange("home")}
+              onClick={onSubmit}
             />
           </div>
         </form>

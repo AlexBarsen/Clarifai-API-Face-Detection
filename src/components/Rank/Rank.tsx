@@ -1,10 +1,16 @@
 import React from "react";
 
-const Rank = () => {
+interface Props {
+  name: string;
+  entries: number;
+}
+
+const Rank: React.FC<Props> = ({ name, entries }) => {
+  console.log("name:", name, entries);
   return (
     <div>
-      <div className="white f3">Alex your current rank is ...</div>
-      <div className="white f1">#5</div>
+      <div className="white f3">{name}, your current rank is ...</div>
+      <div className="white f1">{entries}</div>
     </div>
   );
 };

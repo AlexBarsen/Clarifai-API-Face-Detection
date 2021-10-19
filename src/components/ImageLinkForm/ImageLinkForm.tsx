@@ -3,10 +3,10 @@ import "./ImageLinkForm.css";
 
 interface Props {
   onInputChange: React.ChangeEventHandler<HTMLInputElement>;
-  onButtonSubmit: MouseEventHandler<HTMLButtonElement>;
+  onPictureSubmit: MouseEventHandler<HTMLButtonElement>;
 }
 
-const ImageLinkForm: React.FC<Props> = ({ onInputChange, onButtonSubmit }) => {
+const ImageLinkForm: React.FC<Props> = ({ onInputChange, onPictureSubmit }) => {
   return (
     <div>
       <p className="f3">
@@ -21,7 +21,7 @@ const ImageLinkForm: React.FC<Props> = ({ onInputChange, onButtonSubmit }) => {
           />
           <button
             className="w-30 grow f4 link ph3 pv2 dib white bg-light-purple"
-            onClick={onButtonSubmit}
+            onClick={onPictureSubmit}
           >
             Detect
           </button>
